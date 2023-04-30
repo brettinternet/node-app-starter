@@ -1,0 +1,53 @@
+---
+version: "3"
+
+vars:
+  PROJECT_DIR:
+    sh: git rev-parse --show-toplevel
+
+env:
+  ROOT_DIR: "{{.PROJECT_DIR}}"
+
+tasks:
+  default:
+    silent: true
+    cmds:
+      - task -l
+
+  init:
+    desc: Install dependencies and setup environment
+    cmds:
+      - task: create-env-file
+      - task: dependencies
+
+  create-env-file:
+    desc: Create local environment variable file
+    cmds:
+      - cp example.env .env
+    status:
+      - test -f .env
+
+  dependencies:
+    desc: Setup project dependencies
+    cmds:
+        - npm i
+    status:
+      - test -d node_modules
+
+  start:
+    desc: Start database, web and server
+    cmds:
+      - task: start-postgres
+      - task: start-packages
+    env:
+      NODE_ENV: development
+
+  start-packages:
+    desc: Start web and server packages
+    cmds:
+      - npm start
+
+  start-postgres:
+    desc: Start database container
+    cmds:
+      - docker-compose up -d postgres
